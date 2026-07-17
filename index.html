@@ -262,27 +262,25 @@
     </script>
 
     <!-- Auto-open Genesys Messenger + Send agentNumber -->
-    <script>
-        Genesys('subscribe', 'Messenger.ready', function () {
-            console.log('%c[Genesys] Messenger ready — opening widget automatically', 'color:#b72e45');
-            
-            // Send agentNumber to Genesys if it exists
-            if (window.nafAgentNumber) {
-                Genesys('command', 'Database.set', {
-                    "key": "agentNumber",
-                    "value": window.nafAgentNumber
-                });
-                console.log('%c[Genesys] agentNumber sent to flow: ' + window.nafAgentNumber, 'color:#b72e45');
-            }
-            
-            Genesys('command', 'Messenger.open');
-        });
+<script>
+    Genesys('subscribe', 'Messenger.ready', function () {
+        console.log('%c[Genesys] Messenger ready', 'color:#b72e45');
 
-        // Optional: Log when messenger is closed
-        Genesys('subscribe', 'Messenger.closed', function () {
-            console.log('%c[Genesys] Messenger was closed', 'color:#b72e45');
-        });
-    </script>
+        if (window.nafAgentNumber) {
+            // Send as Conversation Data (most reliable)
+            Genesys('command', 'Database.set', {
+                key: "agentNumber",
+                value: window.nafAgentNumber
+            });
+            
+            console.log('%c[Genesys] Sent agentNumber:', window.nafAgentNumber, 'color:#b72e45');
+        } else {
+            console.log('%c[Genesys] No agentNumber found in URL', 'color:orange');
+        }
+        
+        Genesys('command', 'Messenger.open');
+    });
+</script>
 
 </body>
 </html>
