@@ -172,8 +172,6 @@
         </div>
     </section>
 
-    <!-- ... rest of your sections ... -->
-
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">
         <div class="container">
@@ -212,20 +210,6 @@
 
         setInterval(cycleTitle, 3500);
 
-        // Newsletter form
-        const newsletterForm = document.getElementById('newsletterForm');
-        const newsletterSuccess = document.getElementById('newsletterSuccess');
-
-        newsletterForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('emailInput').value.trim();
-            if (email) {
-                newsletterSuccess.classList.remove('d-none');
-                newsletterForm.reset();
-                setTimeout(() => newsletterSuccess.classList.add('d-none'), 4000);
-            }
-        });
-
         console.log('%c[Local Replica] NAF Clean Homepage loaded successfully', 'color:#b72e45');
     </script>
 
@@ -262,25 +246,28 @@
     </script>
 
     <!-- Auto-open Genesys Messenger + Send agentNumber -->
-<script>
-    Genesys('subscribe', 'Messenger.ready', function () {
-        console.log('%c[Genesys] Messenger ready', 'color:#b72e45');
+    <script>
+        Genesys('subscribe', 'Messenger.ready', function () {
+            console.log('%c[Genesys] Messenger ready', 'color:#b72e45');
 
-        if (window.nafAgentNumber) {
-            // Send as Conversation Data (most reliable)
-            Genesys('command', 'Database.set', {
-                key: "agentNumber",
-                value: window.nafAgentNumber
-            });
+            if (window.nafAgentNumber) {
+                // Update to the modern messaging structure
+                Genesys('command', 'Database.set', {
+                    messaging: {
+                        customAttributes: {
+                            agentNumber: window.nafAgentNumber
+                        }
+                    }
+                });
+                
+                console.log('%c[Genesys] Set agentNumber payload:', window.nafAgentNumber, 'color:#b72e45');
+            } else {
+                console.log('%c[Genesys] No agentNumber found in URL', 'color:orange');
+            }
             
-            console.log('%c[Genesys] Sent agentNumber:', window.nafAgentNumber, 'color:#b72e45');
-        } else {
-            console.log('%c[Genesys] No agentNumber found in URL', 'color:orange');
-        }
-        
-        Genesys('command', 'Messenger.open');
-    });
-</script>
+            Genesys('command', 'Messenger.open');
+        });
+    </script>
 
 </body>
 </html>
