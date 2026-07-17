@@ -230,7 +230,7 @@
         })(window, 'Genesys', 'https://apps.usw2.pure.cloud/genesys-bootstrap/genesys.min.js', {"environment":"prod-usw2","deploymentId":"5424ccd7-6b2c-498d-a8fb-9b8c6b146957"});
     </script>
 
-    <!-- URL Parameter Handler -->
+    <!-- URL Parameter Handler (Hardened for Mobile) -->
     <script>
         function getUrlParameter(name) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -240,18 +240,16 @@
         const agentNumber = getUrlParameter('agent');
         
         if (agentNumber) {
-            console.log('%c[URL Param] Agent Number detected: ' + agentNumber, 'color:#b72e45; font-weight:bold');
+            console.log('[URL Param] Agent Number detected: ' + agentNumber);
             window.nafAgentNumber = agentNumber;
         }
     </script>
 
-    <!-- Auto-open Genesys Messenger + Send agentNumber -->
+    <!-- Auto-open Genesys Messenger + Send agentNumber (Mobile Optimized) -->
     <script>
-        Genesys('subscribe', 'Messenger.ready', function () {
-            console.log('%c[Genesys] Messenger ready', 'color:#b72e45');
-
+        // Centralized function to set the attribute
+        function applyGenesysAttributes() {
             if (window.nafAgentNumber) {
-                // Update to the modern messaging structure
                 Genesys('command', 'Database.set', {
                     messaging: {
                         customAttributes: {
@@ -259,14 +257,28 @@
                         }
                     }
                 });
-                
-                console.log('%c[Genesys] Set agentNumber payload:', window.nafAgentNumber, 'color:#b72e45');
-            } else {
-                console.log('%c[Genesys] No agentNumber found in URL', 'color:orange');
+                console.log('[Genesys] Successfully set agentNumber payload:', window.nafAgentNumber);
             }
-            
+        }
+
+        // Layer 1: Fire on standard Messenger Ready event
+        Genesys('subscribe', 'Messenger.ready', function () {
+            console.log('[Genesys] Messenger ready event caught.');
+            applyGenesysAttributes();
             Genesys('command', 'Messenger.open');
         });
+
+        // Layer 2: Mobile Guard. Fire again when the user physically touches the screen 
+        // This wakes up mobile Chrome's throttled JS engine if it slept through Layer 1.
+        function mobileInteractionFallback() {
+            applyGenesysAttributes();
+            // Remove listeners immediately so it only triggers once
+            document.removeEventListener('touchstart', mobileInteractionFallback);
+            document.removeEventListener('click', mobileInteractionFallback);
+        }
+        
+        document.addEventListener('touchstart', mobileInteractionFallback);
+        document.addEventListener('click', mobileInteractionFallback);
     </script>
 
 </body>
