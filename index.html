@@ -172,7 +172,7 @@
         </div>
     </section>
 
-    <!-- ... (the rest of your sections remain unchanged) ... -->
+    <!-- ... rest of your sections ... -->
 
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">
@@ -210,31 +210,26 @@
             }, 300);
         }
 
-        // Start cycling every 3.5 seconds
         setInterval(cycleTitle, 3500);
 
-        // Newsletter form (fake submission for local demo)
+        // Newsletter form
         const newsletterForm = document.getElementById('newsletterForm');
         const newsletterSuccess = document.getElementById('newsletterSuccess');
 
         newsletterForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const email = document.getElementById('emailInput').value.trim();
-            
             if (email) {
                 newsletterSuccess.classList.remove('d-none');
                 newsletterForm.reset();
-                
-                setTimeout(() => {
-                    newsletterSuccess.classList.add('d-none');
-                }, 4000);
+                setTimeout(() => newsletterSuccess.classList.add('d-none'), 4000);
             }
         });
 
         console.log('%c[Local Replica] NAF Clean Homepage loaded successfully', 'color:#b72e45');
     </script>
 
-    <!-- Original Genesys Cloud CX snippet -->
+    <!-- Genesys Bootstrap -->
     <script>
         (function (g, e, n, es, ys) {
             g['_genesysJs'] = e;
@@ -251,15 +246,39 @@
         })(window, 'Genesys', 'https://apps.usw2.pure.cloud/genesys-bootstrap/genesys.min.js', {"environment":"prod-usw2","deploymentId":"5424ccd7-6b2c-498d-a8fb-9b8c6b146957"});
     </script>
 
-    <!-- Auto-open Genesys Messenger -->
+    <!-- URL Parameter Handler -->
     <script>
-        // Wait for Messenger to be ready, then open it automatically
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        const agentNumber = getUrlParameter('agent');
+        
+        if (agentNumber) {
+            console.log('%c[URL Param] Agent Number detected: ' + agentNumber, 'color:#b72e45; font-weight:bold');
+            window.nafAgentNumber = agentNumber;
+        }
+    </script>
+
+    <!-- Auto-open Genesys Messenger + Send agentNumber -->
+    <script>
         Genesys('subscribe', 'Messenger.ready', function () {
             console.log('%c[Genesys] Messenger ready — opening widget automatically', 'color:#b72e45');
+            
+            // Send agentNumber to Genesys if it exists
+            if (window.nafAgentNumber) {
+                Genesys('command', 'Database.set', {
+                    "key": "agentNumber",
+                    "value": window.nafAgentNumber
+                });
+                console.log('%c[Genesys] agentNumber sent to flow: ' + window.nafAgentNumber, 'color:#b72e45');
+            }
+            
             Genesys('command', 'Messenger.open');
         });
 
-        // Optional: Also handle if it gets closed and reopened
+        // Optional: Log when messenger is closed
         Genesys('subscribe', 'Messenger.closed', function () {
             console.log('%c[Genesys] Messenger was closed', 'color:#b72e45');
         });
